@@ -36,10 +36,6 @@ class ViewController: UIViewController {
         stackView.clipsToBounds = true
         stackView.layer.borderWidth = 2
         stackView.layer.borderColor = UIColor.lightGray.cgColor
-        
-
-        
-        
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
         incrementButton.setTitle("+", for: .normal)
@@ -56,17 +52,10 @@ class ViewController: UIViewController {
         decrementButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
         decrementButton.tintColor = .black
         decrementButton.backgroundColor = .white
-//        decrementButton.layer.borderColor = UIColor.black.cgColor
         decrementButton.addTarget(self, action: #selector(decrementTapped), for: .touchUpInside)
         
         stackView.addArrangedSubview(incrementButton)
         stackView.addArrangedSubview(decrementButton)
-        
-        print("StackView superview before adding: \(String(describing: stackView.superview))")
-        self.mapView.addSubview(stackView)
-        print("StackView superview after adding: \(String(describing: stackView.superview))")
-        
-
         
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 16),
@@ -85,8 +74,6 @@ class ViewController: UIViewController {
         value -= 1
     }
 }
-
-
 
 extension ViewController {
     
