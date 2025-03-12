@@ -26,6 +26,7 @@ class ViewController: UIViewController {
         setupStepper()
         
         setConstraints()
+        
     }
     
     private func setupStepper() {
@@ -57,22 +58,30 @@ class ViewController: UIViewController {
         stackView.addArrangedSubview(incrementButton)
         stackView.addArrangedSubview(decrementButton)
         
+        mapView.addSubview(stackView)
+        
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 16),
             stackView.leadingAnchor.constraint(equalTo: mapView.leadingAnchor, constant: 16)
         ])
-        
-        stackView.frame = CGRect(x: 16, y: 50, width: 50, height: 120)
-        stackView.autoresizingMask = [.flexibleRightMargin, .flexibleBottomMargin]
     }
     
     @objc private func incrementTapped() {
-        value += 1
+       
+        changeZoom(scale: 0.5)
     }
     
     @objc private func decrementTapped() {
-        value -= 1
+        
+        changeZoom(scale: 2.0)
     }
+    func changeZoom(scale: Double) {
+        var region = mapView.region
+        region.span.latitudeDelta *= CGFloat(scale)
+        region.span.longitudeDelta *= CGFloat(scale)
+        mapView.setRegion(region, animated: true)
+    }
+    
 }
 
 extension ViewController {
