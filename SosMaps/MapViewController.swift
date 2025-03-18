@@ -13,7 +13,6 @@ class ViewController: UIViewController {
     
     private let incrementButton = UIButton(type: .system)
     private let decrementButton = UIButton(type: .system)
-    private var value = 0
     var mapView: MKMapView = {
         let mapView = MKMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -23,11 +22,19 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupMapView()
+        
         setupStepper()
         
         setConstraints()
         
     }
+    
+    private func setupMapView() {
+            // Добавляем жест нажатия
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
+            mapView.addGestureRecognizer(tapGesture)
+        }
     
     private func setupStepper() {
         let stackView = UIStackView()
@@ -75,13 +82,25 @@ class ViewController: UIViewController {
         
         changeZoom(scale: 2.0)
     }
+    
+    @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
+            let location = gesture.location(in: mapView)
+            let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
+
+            // Создаем метку
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = "Новая метка"
+            
+            mapView.addAnnotation(annotation)
+        }
+    
     func changeZoom(scale: Double) {
         var region = mapView.region
         region.span.latitudeDelta *= CGFloat(scale)
         region.span.longitudeDelta *= CGFloat(scale)
         mapView.setRegion(region, animated: true)
     }
-    
 }
 
 extension ViewController {
