@@ -27,14 +27,45 @@ class ViewController: UIViewController {
         setupStepper()
         
         setConstraints()
-        
     }
     
     private func setupMapView() {
-            // Добавляем жест нажатия
-            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
-            mapView.addGestureRecognizer(tapGesture)
-        }
+        // Добавляем жест нажатия
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
+        mapView.addGestureRecognizer(tapGesture)
+    }
+    
+    private func showInputAlert (coordinate: CLLocationCoordinate2D){
+        let alert = UIAlertController(title: "Добавить метку", message: "Введите информацию", preferredStyle: .alert)
+        
+        alert.addTextField {$0.placeholder = "Местоположение (авто)"}
+        alert.addTextField { $0.placeholder = "Широта"; $0.text = "\(coordinate.latitude)"; $0.isEnabled = false }
+        alert.addTextField { $0.placeholder = "Долгота"; $0.text = "\(coordinate.longitude)"; $0.isEnabled = false }
+        alert.addTextField { $0.placeholder = "Имя" }
+        alert.addTextField { $0.placeholder = "Телефон"; $0.keyboardType = .phonePad }
+        alert.addTextField { $0.placeholder = "Описание проблемы" }
+        
+        let addAction = UIAlertAction(title: "Добавить", style: .default) { _ in
+            let location = alert.textFields?[0].text ?? "Неизвестное место"
+            let name = alert.textFields?[3].text ?? "Нет имени"
+            let phone = alert.textFields?[4].text ?? "Нет телефона"
+            let description = alert.textFields?[5].text ?? "Нет описания"
+            
+            self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)}
+        
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(addAction)
+        present(alert, animated: true)
+    }
+    
+    private func addAnnotation(coordinate: CLLocationCoordinate2D, location: String, name: String, phone: String, description: String) {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        annotation.title = "\(name) (\(location))"
+        annotation.subtitle = "📞 \(phone)\n📌 \(description)"
+        
+        mapView.addAnnotation(annotation)
+    }
     
     private func setupStepper() {
         let stackView = UIStackView()
@@ -74,7 +105,7 @@ class ViewController: UIViewController {
     }
     
     @objc private func incrementTapped() {
-       
+        
         changeZoom(scale: 0.5)
     }
     
@@ -84,16 +115,18 @@ class ViewController: UIViewController {
     }
     
     @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
-            let location = gesture.location(in: mapView)
-            let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
-
-            // Создаем метку
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = coordinate
-            annotation.title = "Новая метка"
-            
-            mapView.addAnnotation(annotation)
-        }
+        let location = gesture.location(in: mapView)
+        let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
+        
+        // Создаем метку
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        annotation.title = "New mark"
+        
+        showInputAlert(coordinate: coordinate)
+        
+        mapView.addAnnotation(annotation)
+    }
     
     func changeZoom(scale: Double) {
         var region = mapView.region
