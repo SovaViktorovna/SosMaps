@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     
     private let incrementButton = UIButton(type: .system)
     private let decrementButton = UIButton(type: .system)
+    private var lastAnnotation: MKPointAnnotation?
     var mapView: MKMapView = {
         let mapView = MKMapView()
         mapView.translatesAutoresizingMaskIntoConstraints = false
@@ -51,18 +52,26 @@ class ViewController: UIViewController {
             let phone = alert.textFields?[4].text ?? "No phone number"
             let description = alert.textFields?[5].text ?? "There is no description"
             
-            self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)}
+            self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)
+        }
         
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in
+                if let annotation = self.lastAnnotation {
+                    self.mapView.removeAnnotation(annotation)
+                    self.lastAnnotation = nil
+                }
+            }
+        
         alert.addAction(addAction)
+        alert.addAction(cancelAction)
         present(alert, animated: true)
     }
     
     private func addAnnotation(coordinate: CLLocationCoordinate2D, location: String, name: String, phone: String, description: String) {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
-        annotation.title = "\(name) (\(location))"
-        annotation.subtitle = "📞 \(phone)\n📌 \(description)"
+//        annotation.title = "\(name) (\(location))"
+//        annotation.subtitle = "📞 \(phone)\n📌 \(description)"
         
         mapView.addAnnotation(annotation)
     }
@@ -118,10 +127,10 @@ class ViewController: UIViewController {
         let location = gesture.location(in: mapView)
         let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
         
-        // Создаем метку
+        // Создаем метку и сохраняем
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
-        annotation.title = "New mark"
+        lastAnnotation = annotation
         
         showInputAlert(coordinate: coordinate)
         
