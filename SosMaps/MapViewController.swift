@@ -61,10 +61,24 @@ class ViewController: UIViewController {
                     self.lastAnnotation = nil
                 }
             }
+        // Изначально отключаем кнопку "Add"
+        addAction.isEnabled = false
         
         alert.addAction(addAction)
         alert.addAction(cancelAction)
         present(alert, animated: true)
+        
+        // Добавляем наблюдателя для отслеживания изменений в текстовых полях
+        for textField in alert.textFields ?? [] {
+            NotificationCenter.default.addObserver(forName: UITextField.textDidChangeNotification, object: textField, queue: .main) { _ in
+                addAction.isEnabled = self.areAllFieldsFilled(in: alert)
+                }
+            }
+    }
+    
+    // Проверяем, заполнены ли все поля
+    private func areAllFieldsFilled(in alert: UIAlertController) -> Bool {
+        return alert.textFields?.allSatisfy { !(($0.text ?? "").isEmpty) } ?? false
     }
     
     private func addAnnotation(coordinate: CLLocationCoordinate2D, location: String, name: String, phone: String, description: String) {
