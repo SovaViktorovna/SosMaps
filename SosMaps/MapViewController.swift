@@ -36,24 +36,24 @@ class ViewController: UIViewController {
     }
     
     private func showInputAlert (coordinate: CLLocationCoordinate2D){
-        let alert = UIAlertController(title: "Добавить метку", message: "Введите информацию", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Add a label", message: "Enter the information", preferredStyle: .alert)
         
-        alert.addTextField {$0.placeholder = "Местоположение (авто)"}
-        alert.addTextField { $0.placeholder = "Широта"; $0.text = "\(coordinate.latitude)"; $0.isEnabled = false }
-        alert.addTextField { $0.placeholder = "Долгота"; $0.text = "\(coordinate.longitude)"; $0.isEnabled = false }
-        alert.addTextField { $0.placeholder = "Имя" }
-        alert.addTextField { $0.placeholder = "Телефон"; $0.keyboardType = .phonePad }
-        alert.addTextField { $0.placeholder = "Описание проблемы" }
+        alert.addTextField {$0.placeholder = "Location"}
+        alert.addTextField { $0.placeholder = "Width"; $0.text = "\(coordinate.latitude)"; $0.isEnabled = false }
+        alert.addTextField { $0.placeholder = "Longitude"; $0.text = "\(coordinate.longitude)"; $0.isEnabled = false }
+        alert.addTextField { $0.placeholder = "Name" }
+        alert.addTextField { $0.placeholder = "Telephone"; $0.keyboardType = .phonePad }
+        alert.addTextField { $0.placeholder = "Problem description" }
         
-        let addAction = UIAlertAction(title: "Добавить", style: .default) { _ in
-            let location = alert.textFields?[0].text ?? "Неизвестное место"
-            let name = alert.textFields?[3].text ?? "Нет имени"
-            let phone = alert.textFields?[4].text ?? "Нет телефона"
-            let description = alert.textFields?[5].text ?? "Нет описания"
+        let addAction = UIAlertAction(title: "Add", style: .default) { _ in
+            let location = alert.textFields?[0].text ?? "Unknown location"
+            let name = alert.textFields?[3].text ?? "No name"
+            let phone = alert.textFields?[4].text ?? "No phone number"
+            let description = alert.textFields?[5].text ?? "There is no description"
             
             self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)}
         
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(addAction)
         present(alert, animated: true)
     }
