@@ -7,6 +7,7 @@
 
 import UIKit
 import MapKit
+import SwiftUI
 
 
 class ViewController: UIViewController {
@@ -42,38 +43,66 @@ class ViewController: UIViewController {
         alert.addTextField {$0.placeholder = "Location"}
         alert.addTextField { $0.placeholder = "Width"; $0.text = "\(coordinate.latitude)"; $0.isEnabled = false }
         alert.addTextField { $0.placeholder = "Longitude"; $0.text = "\(coordinate.longitude)"; $0.isEnabled = false }
-        alert.addTextField { $0.placeholder = "Name" }
-        alert.addTextField { $0.placeholder = "Telephone"; $0.keyboardType = .phonePad }
-        alert.addTextField { $0.placeholder = "Problem description" }
+        alert.addTextField { $0.placeholder = "Name"}
+        alert.addTextField { $0.placeholder = "Telephone" ; $0.keyboardType = .phonePad }
+        alert.addTextField { $0.placeholder = "Problem description"}
         
         let addAction = UIAlertAction(title: "Add", style: .default) { _ in
-            let location = alert.textFields?[0].text ?? "Unknown location"
-            let name = alert.textFields?[3].text ?? "No name"
-            let phone = alert.textFields?[4].text ?? "No phone number"
-            let description = alert.textFields?[5].text ?? "There is no description"
-            
-            self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)
+            if self.validateFields(in: alert) {
+                let location = alert.textFields?[0].text ?? "Unknown location"
+                let name = alert.textFields?[3].text ?? "No name"
+                let phone = alert.textFields?[4].text ?? "No phone number"
+                let description = alert.textFields?[5].text ?? "There is no description"
+                
+                self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)
+            } else {
+                // Если есть пустые поля, не закрываем alert
+                self.present(alert, animated: true)
+            }
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { _ in
-                if let annotation = self.lastAnnotation {
-                    self.mapView.removeAnnotation(annotation)
-                    self.lastAnnotation = nil
-                }
+            if let annotation = self.lastAnnotation {
+                self.mapView.removeAnnotation(annotation)
+                self.lastAnnotation = nil
             }
-        // Изначально отключаем кнопку "Add"
-        addAction.isEnabled = false
+        }
         
         alert.addAction(addAction)
         alert.addAction(cancelAction)
         present(alert, animated: true)
         
-        // Добавляем наблюдателя для отслеживания изменений в текстовых полях
+        
+        
         for textField in alert.textFields ?? [] {
-            NotificationCenter.default.addObserver(forName: UITextField.textDidChangeNotification, object: textField, queue: .main) { _ in
+            
+            textField.layer.cornerRadius = 4
+            textField.layer.borderWidth = 1
+            textField.layer.borderColor = UIColor.clear.cgColor
+            
+            
+            // Добавляем наблюдателя для отслеживания изменений в текстовых полях
+            NotificationCenter.default.addObserver(forName: UITextField.textDidChangeNotification, object: textField, queue: .main){ _ in
                 addAction.isEnabled = self.areAllFieldsFilled(in: alert)
-                }
+                textField.layer.borderColor = UIColor.clear.cgColor
             }
+        }
+    }
+    
+    //  Проверка всех полей и подсветка пустых
+    private func validateFields(in alert: UIAlertController) -> Bool {
+        var isValid = true
+        
+        alert.textFields?.forEach { textField in
+            if (textField.text ?? "").isEmpty {
+                textField.layer.borderColor = UIColor.red.cgColor // Красная рамка
+                isValid = false
+            } else {
+                textField.layer.borderColor = UIColor.clear.cgColor // Убираем красную рамку
+            }
+        }
+        
+        return isValid
     }
     
     // Проверяем, заполнены ли все поля
@@ -84,8 +113,6 @@ class ViewController: UIViewController {
     private func addAnnotation(coordinate: CLLocationCoordinate2D, location: String, name: String, phone: String, description: String) {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
-//        annotation.title = "\(name) (\(location))"
-//        annotation.subtitle = "📞 \(phone)\n📌 \(description)"
         
         mapView.addAnnotation(annotation)
     }
@@ -127,16 +154,6 @@ class ViewController: UIViewController {
         ])
     }
     
-    @objc private func incrementTapped() {
-        
-        changeZoom(scale: 0.5)
-    }
-    
-    @objc private func decrementTapped() {
-        
-        changeZoom(scale: 2.0)
-    }
-    
     @objc private func handleMapTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: mapView)
         let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
@@ -149,6 +166,17 @@ class ViewController: UIViewController {
         showInputAlert(coordinate: coordinate)
         
         mapView.addAnnotation(annotation)
+    }
+    
+    
+    @objc private func incrementTapped() {
+        
+        changeZoom(scale: 0.5)
+    }
+    
+    @objc private func decrementTapped() {
+        
+        changeZoom(scale: 2.0)
     }
     
     func changeZoom(scale: Double) {
