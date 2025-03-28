@@ -7,8 +7,6 @@
 
 import UIKit
 import MapKit
-import SwiftUI
-
 
 class ViewController: UIViewController {
     
@@ -38,26 +36,54 @@ class ViewController: UIViewController {
     }
     
     private func showInputAlert (coordinate: CLLocationCoordinate2D){
-        let alert = UIAlertController(title: "Add a label", message: "Enter the information", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Enter the information", message: "Fill in all the fields", preferredStyle: .alert)
         
-        alert.addTextField {$0.placeholder = "Location"}
-        alert.addTextField { $0.placeholder = "Width"; $0.text = "\(coordinate.latitude)"; $0.isEnabled = false }
-        alert.addTextField { $0.placeholder = "Longitude"; $0.text = "\(coordinate.longitude)"; $0.isEnabled = false }
-        alert.addTextField { $0.placeholder = "Name"}
-        alert.addTextField { $0.placeholder = "Telephone" ; $0.keyboardType = .phonePad }
-        alert.addTextField { $0.placeholder = "Problem description"}
+        alert.addTextField {
+            $0.placeholder = "Location"
+        }
+        alert.addTextField {
+            $0.placeholder = "Width";
+            $0.text = "\(coordinate.latitude)";
+            $0.isEnabled = false
+        }
+        alert.addTextField {
+            $0.placeholder = "Longitude";
+            $0.text = "\(coordinate.longitude)";
+            $0.isEnabled = false }
+        alert.addTextField {
+            $0.placeholder = "Name"
+        }
+        alert.addTextField {
+            $0.placeholder = "Telephone" ;
+            $0.keyboardType = .phonePad
+        }
+        alert.addTextField {
+            $0.placeholder = "Problem description"
+        }
         
         let addAction = UIAlertAction(title: "Add", style: .default) { _ in
             if self.validateFields(in: alert) {
+                print("валидация  прошла")
                 let location = alert.textFields?[0].text ?? "Unknown location"
                 let name = alert.textFields?[3].text ?? "No name"
                 let phone = alert.textFields?[4].text ?? "No phone number"
                 let description = alert.textFields?[5].text ?? "There is no description"
                 
                 self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)
-            } else {
+            }
+            else {
+                print("валидация не прошла")
                 // Если есть пустые поля, не закрываем alert
                 self.present(alert, animated: true)
+                //
+            }
+        }
+        
+        for textField in alert.textFields ?? [] {
+            // Добавляем наблюдателя для отслеживания изменений в текстовых полях
+            NotificationCenter.default.addObserver(forName: UITextField.textDidChangeNotification, object: textField, queue: .main){ _ in
+                addAction.isEnabled = self.areAllFieldsFilled(in: alert)
+                textField.layer.sublayers?.first(where: { $0.name == "bottomBorder" })?.backgroundColor = UIColor.clear.cgColor
             }
         }
         
@@ -72,20 +98,8 @@ class ViewController: UIViewController {
         alert.addAction(cancelAction)
         present(alert, animated: true)
         
-        
-        
-        for textField in alert.textFields ?? [] {
-            
-            textField.layer.cornerRadius = 4
-            textField.layer.borderWidth = 1
-            textField.layer.borderColor = UIColor.clear.cgColor
-            
-            
-            // Добавляем наблюдателя для отслеживания изменений в текстовых полях
-            NotificationCenter.default.addObserver(forName: UITextField.textDidChangeNotification, object: textField, queue: .main){ _ in
-                addAction.isEnabled = self.areAllFieldsFilled(in: alert)
-                textField.layer.borderColor = UIColor.clear.cgColor
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            alert.textFields?.forEach { self.addBottomBorder(to: $0) }
         }
     }
     
@@ -95,14 +109,23 @@ class ViewController: UIViewController {
         
         alert.textFields?.forEach { textField in
             if (textField.text ?? "").isEmpty {
-                textField.layer.borderColor = UIColor.red.cgColor // Красная рамка
+                textField.layer.sublayers?.first(where: { $0.name == "bottomBorder" })?.backgroundColor = UIColor.red.cgColor// Красная рамка
                 isValid = false
             } else {
-                textField.layer.borderColor = UIColor.clear.cgColor // Убираем красную рамку
+                textField.layer.sublayers?.first(where: { $0.name == "bottomBorder" })?.backgroundColor = UIColor.clear.cgColor
+                // Убираем красную рамку
             }
         }
-        
         return isValid
+    }
+    
+    private func addBottomBorder(to textField: UITextField) {
+        let bottomBorder = CALayer()
+        bottomBorder.name = "bottomBorder"
+        bottomBorder.frame = CGRect(x: 0, y: textField.frame.height - 1, width: textField.frame.width, height: 1)
+        bottomBorder.backgroundColor = UIColor.clear.cgColor
+        textField.borderStyle = .none
+        textField.layer.addSublayer(bottomBorder)
     }
     
     // Проверяем, заполнены ли все поля
