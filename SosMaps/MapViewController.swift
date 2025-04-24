@@ -8,6 +8,7 @@
 import UIKit
 import MapKit
 
+
 class ViewController: UIViewController {
     
     private let incrementButton = UIButton(type: .system)
@@ -22,6 +23,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        mapView.delegate = self
+        
         setupMapView()
         
         setupStepper()
@@ -31,6 +34,7 @@ class ViewController: UIViewController {
     
     private func setupMapView() {
         // Добавляем жест нажатия
+        // Добавить сюда проверку на поставленную точку
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
         mapView.addGestureRecognizer(tapGesture)
     }
@@ -78,6 +82,7 @@ class ViewController: UIViewController {
                 //
             }
         }
+        addAction.isEnabled = false
         
         for textField in alert.textFields ?? [] {
             // Добавляем наблюдателя для отслеживания изменений в текстовых полях
@@ -109,11 +114,10 @@ class ViewController: UIViewController {
         
         alert.textFields?.forEach { textField in
             if (textField.text ?? "").isEmpty {
-                textField.layer.sublayers?.first(where: { $0.name == "bottomBorder" })?.backgroundColor = UIColor.red.cgColor// Красная рамка
+                
                 isValid = false
             } else {
-                textField.layer.sublayers?.first(where: { $0.name == "bottomBorder" })?.backgroundColor = UIColor.clear.cgColor
-                // Убираем красную рамку
+                
             }
         }
         return isValid
@@ -221,6 +225,17 @@ extension ViewController {
             mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
             mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0)
         ])
+    }
+}
+
+extension ViewController: MKMapViewDelegate {
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        guard let annotation = view.annotation else { return }
+        
+        // Здесь можно передавать данные аннотации в кастомную вьюху
+        let detailsVC = DetailsViewController()
+        detailsVC.modalPresentationStyle = .overFullScreen
+        present(detailsVC, animated: true)
     }
 }
 
