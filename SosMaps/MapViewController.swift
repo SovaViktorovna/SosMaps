@@ -8,7 +8,6 @@
 import UIKit
 import MapKit
 
-
 class ViewController: UIViewController {
     
     private let incrementButton = UIButton(type: .system)
@@ -72,8 +71,8 @@ class ViewController: UIViewController {
                 let name = alert.textFields?[3].text ?? "No name"
                 let phone = alert.textFields?[4].text ?? "No phone number"
                 let description = alert.textFields?[5].text ?? "There is no description"
-                
-                self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)
+                //                скорее всего удалить
+                //                self.addAnnotation(coordinate: coordinate, location: location, name: name, phone: phone, description: description)
             }
             else {
                 print("валидация не прошла")
@@ -136,13 +135,7 @@ class ViewController: UIViewController {
     private func areAllFieldsFilled(in alert: UIAlertController) -> Bool {
         return alert.textFields?.allSatisfy { !(($0.text ?? "").isEmpty) } ?? false
     }
-    
-    private func addAnnotation(coordinate: CLLocationCoordinate2D, location: String, name: String, phone: String, description: String) {
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinate
-        
-        mapView.addAnnotation(annotation)
-    }
+
     
     private func setupStepper() {
         let stackView = UIStackView()
@@ -185,14 +178,31 @@ class ViewController: UIViewController {
         let location = gesture.location(in: mapView)
         let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
         
-        // Создаем метку и сохраняем
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinate
-        lastAnnotation = annotation
+        let existingAnnotation = mapView.annotations.first(where: { annotation in
+            let annotationPoint = MKMapPoint(annotation.coordinate)
+            let tapPoint = MKMapPoint(coordinate)
+            let distance = annotationPoint.distance(to: tapPoint)
+            return distance < 3000
+        })
         
-        showInputAlert(coordinate: coordinate)
+        if let annotation = existingAnnotation {
+            openDetails (for: annotation)
+        } else {
+            
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            lastAnnotation = annotation
+            
+            showInputAlert(coordinate: coordinate)
+            
+            mapView.addAnnotation(annotation)
+        }
+    }
+    
+    func openDetails (for annotation: MKAnnotation) {
+        let detailsVC = DetailsViewController()
         
-        mapView.addAnnotation(annotation)
+        navigationController?.pushViewController(detailsVC, animated: true)
     }
     
     
@@ -230,9 +240,7 @@ extension ViewController {
 
 extension ViewController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        guard let annotation = view.annotation else { return }
-        
-        // Здесь можно передавать данные аннотации в кастомную вьюху
+        guard view.annotation != nil else { return }
         let detailsVC = DetailsViewController()
         detailsVC.modalPresentationStyle = .overFullScreen
         present(detailsVC, animated: true)

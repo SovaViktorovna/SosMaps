@@ -7,9 +7,12 @@
 import UIKit
 
 class DetailsViewController: UIViewController {
+    var titleText: String?
+    var subtitleText: String?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+        view.backgroundColor = UIColor.white.withAlphaComponent(0.7)
         
         let dismissButton = UIButton(frame: CGRect(x: 20, y: 50, width: 100, height: 40))
         dismissButton.setTitle("Закрыть", for: .normal)
